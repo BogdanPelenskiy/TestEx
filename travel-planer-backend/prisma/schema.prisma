@@ -1,75 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Зв’язки
-  trips          Trip[]          @relation("UserTrips") // користувач як власник
-  places         Place[]         @relation("UserPlaces") // користувач як автор місць
-  collaborations Collaboration[]
+  id             String   @id @default(uuid())
+  email          String   @unique
+  password       String
+  name           String?
+  role           Role     @default(USER)
+  tripsOwned     Trip[]   @relation("UserTripsOwned")
+  collaborations Trip[]   @relation("TripCollaborators")
+  invites        Invite[] @relation("UserInvites")
+  createdAt      DateTime @default(now())
 }
 
 model Trip {
-  id          String   @id @default(uuid())
-  name        String
-  startDate   DateTime
-  endDate     DateTime
-  createdById String
-
-  createdBy User @relation("UserTrips", fields: [createdById], references: [id])
-
-  // Зв’язки
-  invites        Invite[]
-  collaborations Collaboration[]
-  places         Place[]
+  id            String    @id @default(uuid())
+  title         String
+  description   String?
+  startDate     DateTime?
+  endDate       DateTime?
+  ownerId       String
+  owner         User      @relation("UserTripsOwned", fields: [ownerId], references: [id], onDelete: Cascade)
+  collaborators User[]    @relation("TripCollaborators")
+  places        Place[]
+  invites       Invite[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 model Place {
   id           String   @id @default(uuid())
   tripId       String
-  createdById  String
+  trip         Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
   locationName String
   notes        String?
   dayNumber    Int
   createdAt    DateTime @default(now())
-
-  // Зв’язки
-  trip      Trip @relation(fields: [tripId], references: [id])
-  createdBy User @relation("UserPlaces", fields: [createdById], references: [id])
-
-  @@index([tripId, dayNumber])
-}
-
-model Collaboration {
-  id        String   @id @default(uuid())
-  tripId    String
-  userId    String
-  role      String
-  createdAt DateTime @default(now())
-
-  trip Trip @relation(fields: [tripId], references: [id])
-  user User @relation(fields: [userId], references: [id])
-
-  @@unique([tripId, userId])
+  updatedAt    DateTime @updatedAt
 }
 
 model Invite {
-  id        String   @id @default(uuid())
+  id        Int      @id @default(autoincrement())
   tripId    String
+  userId    String? // користувач, якого запросили (може бути null, якщо ще не зареєстрований)
   email     String
+  token     String
+  status    String   @default("pending")
+  expiresAt DateTime
   createdAt DateTime @default(now())
 
-  trip Trip @relation(fields: [tripId], references: [id])
+  Trip Trip  @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  User User? @relation("UserInvites", fields: [userId], references: [id])
+}
+
+enum Role {
+  USER
+  OWNER
+  COLLABORATOR
 }

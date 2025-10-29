@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import TripsPage from "./pages/TripsPage";
+import TripDetailsPage from "./pages/TripDetailsPage";
+import TripAccessPage from "./pages/TripAccessPage";
+
 
 function App() {
   return (
@@ -12,6 +15,9 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/trips" element={<TripsPage />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="/trips/:id" element={<TripDetailsPage />} />
+        <Route path="/trips/:id/access" element={<TripAccessPage />} /> 
+
       </Routes>
     </Router>
   );
