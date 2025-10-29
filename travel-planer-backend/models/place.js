@@ -1,25 +1,15 @@
-import { Model, DataTypes } from 'sequelize';
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
 
-export default (sequelize) => {
-  class Place extends Model {
-    static associate(models) {
-      // define association here
-      // приклад: Place.belongsTo(models.Trip, { foreignKey: 'tripId' });
-    }
+export const getPlaces = async (req, res) => {
+  const { tripId } = req.params;
+  try {
+    const places = await prisma.place.findMany({
+      where: { tripId: parseInt(tripId) },
+      orderBy: { dayNumber: "asc" },
+    });
+    res.json(places);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching places" });
   }
-
-  Place.init(
-    {
-      tripId: DataTypes.INTEGER,
-      locationName: DataTypes.STRING,
-      notes: DataTypes.TEXT,
-      dayNumber: DataTypes.INTEGER,
-    },
-    {
-      sequelize,
-      modelName: 'Place',
-    }
-  );
-
-  return Place;
 };

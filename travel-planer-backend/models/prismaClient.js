@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+
 const prisma = new PrismaClient();
 
-const invites = await prisma.invite.findMany();
+export default prisma;
