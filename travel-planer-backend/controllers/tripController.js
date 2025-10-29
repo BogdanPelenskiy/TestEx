@@ -28,10 +28,11 @@ export const createTrip = async (req, res) => {
         ownerId: req.user.id,
       },
     });
+    console.log(trip)
     res.status(201).json(trip);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error creating trip" });
+    res.status(500).json({ message: error });
   }
 };
 

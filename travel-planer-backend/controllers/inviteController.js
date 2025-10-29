@@ -1,7 +1,7 @@
 // controllers/inviteController.js
-import { prisma } from "../lib/prisma.js";
-
+import prisma from "../lib/prisma.js";
 import jwt from "jsonwebtoken";
+import nodemailer from "nodemailer";
 
 /**
  * Надіслати інвайт користувачу за email
@@ -11,17 +11,16 @@ export const sendInvite = async (req, res) => {
     const { tripId } = req.params;
     const { email } = req.body;
 
-    // Отримуємо поточного користувача (Owner)
     const senderId = req.user.id;
 
     // Знаходимо подорож
     const trip = await prisma.trip.findUnique({
-      where: { id: Number(tripId) },
+      where: { id: tripId },
     });
 
     if (!trip) return res.status(404).json({ message: "Trip not found" });
 
-    // Перевіряємо, чи це Owner
+    // Перевіряємо власника
     if (trip.ownerId !== senderId)
       return res.status(403).json({ message: "Only the owner can send invites" });
 
@@ -30,7 +29,7 @@ export const sendInvite = async (req, res) => {
     if (user && user.id === senderId)
       return res.status(400).json({ message: "You cannot invite yourself" });
 
-    // Перевірка, чи є вже активний інвайт
+    // Перевіряємо, чи є вже активний інвайт
     const existing = await prisma.invite.findFirst({
       where: {
         tripId: trip.id,
@@ -42,7 +41,7 @@ export const sendInvite = async (req, res) => {
     if (existing)
       return res.status(400).json({ message: "Invite already sent to this email" });
 
-    // Створюємо токен для інвайту (можна потім додати expiry)
+    // Створюємо токен
     const token = jwt.sign(
       { tripId: trip.id, email },
       process.env.JWT_SECRET,
@@ -58,13 +57,36 @@ export const sendInvite = async (req, res) => {
       },
     });
 
-    // (Замість реальної відправки email просто лог)
-    console.log(`📧 Invite link: http://localhost:5000/api/invites/accept/${token}`);
+    // === Налаштовуємо Nodemailer ===
+    const transporter = nodemailer.createTransport({
+      service: "gmail", // або інший поштовий сервіс
+      auth: {
+        user: process.env.EMAIL_USER, // твій email
+        pass: process.env.EMAIL_PASS, // пароль або app password
+      },
+    });
 
-    res.json({ message: "Invite sent successfully", invite });
+    const inviteLink = `http://localhost:5050/api/invites/accept/${token}`;
+
+    const mailOptions = {
+      from: `"Travel Planner" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: `Invitation to join trip: ${trip.title}`,
+      html: `
+        <h3>You've been invited to join the trip "${trip.title}"</h3>
+        <p>Click the link below to accept the invite (valid for 24 hours):</p>
+        <a href="${inviteLink}">${inviteLink}</a>
+        <p>Best regards,<br/>Travel Planner Team</p>
+      `,
+    };
+
+    // Відправка листа
+    await transporter.sendMail(mailOptions);
+
+    res.json({ message: "Invite email sent successfully", invite });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+    console.error("❌ Error sending invite:", error);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -82,7 +104,8 @@ export const acceptInvite = async (req, res) => {
       where: { tripId, email, token, status: "PENDING" },
     });
 
-    if (!invite) return res.status(404).json({ message: "Invite not found or expired" });
+    if (!invite)
+      return res.status(404).json({ message: "Invite not found or expired" });
 
     const user = await prisma.user.findUnique({ where: { email } });
 
