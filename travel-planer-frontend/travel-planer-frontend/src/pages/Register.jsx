@@ -8,9 +8,7 @@ export default function Register() {
   const [success, setSuccess] = useState("");
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,7 +17,7 @@ export default function Register() {
     try {
       const res = await api.post("/auth/register", form);
       if (res.status === 201) {
-        setSuccess("✅ Реєстрація успішна! Тепер увійдіть.");
+        setSuccess("✅ Реєстрація успішна! Перенаправлення...");
         setTimeout(() => navigate("/login"), 2000);
       }
     } catch (err) {
@@ -28,68 +26,55 @@ export default function Register() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-blue-600 mb-6">
-          Створити акаунт
-        </h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-sky-100 to-indigo-200">
+      <div className="bg-white/90 backdrop-blur-lg p-10 rounded-3xl shadow-2xl w-full max-w-md">
+        <h2 className="text-3xl font-bold text-center text-blue-600 mb-8">Створити акаунт 🧳</h2>
 
-        {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
-        {success && <p className="text-green-500 text-sm mb-4 text-center">{success}</p>}
+        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+        {success && <p className="text-green-500 text-center mb-4">{success}</p>}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Ім’я</label>
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-              placeholder="Введіть ім’я"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-              placeholder="Введіть email"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Пароль</label>
-            <input
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-              placeholder="Введіть пароль"
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <input
+            type="text"
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            placeholder="Ім’я"
+            required
+            className="w-full border border-gray-300 rounded-2xl px-4 py-3 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+          />
+          <input
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+            placeholder="Email"
+            required
+            className="w-full border border-gray-300 rounded-2xl px-4 py-3 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+          />
+          <input
+            type="password"
+            name="password"
+            value={form.password}
+            onChange={handleChange}
+            placeholder="Пароль"
+            required
+            className="w-full border border-gray-300 rounded-2xl px-4 py-3 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+          />
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700 transition"
+            className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 rounded-2xl font-semibold shadow-lg hover:scale-105 transition-transform"
           >
             Зареєструватися
           </button>
         </form>
 
-        <p className="text-sm text-gray-600 mt-4 text-center">
+        <p className="text-sm text-center text-gray-600 mt-6">
           Вже маєте акаунт?{" "}
           <span
             onClick={() => navigate("/login")}
-            className="text-blue-600 hover:underline cursor-pointer"
+            className="text-blue-600 font-medium hover:underline cursor-pointer"
           >
             Увійти
           </span>

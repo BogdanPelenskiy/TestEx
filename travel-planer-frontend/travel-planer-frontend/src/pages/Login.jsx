@@ -17,11 +17,19 @@ export default function Login() {
 
     try {
       const res = await api.post("/auth/login", form);
+
+      // ✅ Перевіряємо, що бекенд повернув токен і дані користувача
       if (res.data.token) {
         localStorage.setItem("token", res.data.token);
+        if (res.data.user?.name) {
+          localStorage.setItem("userName", res.data.user.name);
+        } else {
+          localStorage.setItem("userName", "Користувач");
+        }
         navigate("/trips");
       }
     } catch (err) {
+      console.error("Login error:", err);
       setError(err.response?.data?.message || "❌ Невірні дані входу");
     }
   };
@@ -30,7 +38,7 @@ export default function Login() {
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
       <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
         <h2 className="text-2xl font-bold text-center text-blue-600 mb-6">
-          Увійти
+          Увійти до акаунту
         </h2>
 
         {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}

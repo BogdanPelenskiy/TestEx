@@ -1,79 +1,65 @@
-import React, { useState } from "react";
-import { createTrip } from "../services/tripService";
+import React, { useEffect, useState } from "react";
+import { getTrips } from "../services/tripService";
 import { useNavigate } from "react-router-dom";
 
-const NewTripPage = () => {
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    startDate: "",
-    endDate: "",
-  });
-  const [error, setError] = useState("");
+export default function TripsPage() {
+  const [trips, setTrips] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  useEffect(() => {
+    const fetchTrips = async () => {
+      try {
+        const data = await getTrips();
+        setTrips(data);
+      } catch (err) {
+        console.error("Помилка при завантаженні подорожей:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTrips();
+  }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await createTrip(form);
-      navigate("/trips");
-    } catch (err) {
-      console.error(err);
-      setError("Не вдалося створити подорож 😢");
-    }
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <p className="text-blue-600 text-lg animate-pulse">Завантаження подорожей...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col items-center mt-10">
-      <h2 className="text-2xl font-semibold mb-4">Створити нову подорож</h2>
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white shadow-md rounded-xl p-6 w-96 flex flex-col gap-4"
-      >
-        <input
-          type="text"
-          name="title"
-          placeholder="Назва подорожі"
-          value={form.title}
-          onChange={handleChange}
-          required
-          className="border p-2 rounded"
-        />
-        <textarea
-          name="description"
-          placeholder="Опис"
-          value={form.description}
-          onChange={handleChange}
-          className="border p-2 rounded"
-        />
-        <input
-          type="date"
-          name="startDate"
-          value={form.startDate}
-          onChange={handleChange}
-          className="border p-2 rounded"
-        />
-        <input
-          type="date"
-          name="endDate"
-          value={form.endDate}
-          onChange={handleChange}
-          className="border p-2 rounded"
-        />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-100 to-indigo-100 p-8">
+      <div className="flex justify-between items-center mb-10">
+        <h1 className="text-3xl font-bold text-blue-700">Мої подорожі 🌍</h1>
         <button
-          type="submit"
-          className="bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+          onClick={() => navigate("/new-trip")}
+          className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-5 py-2 rounded-2xl shadow-md hover:scale-105 transition-transform"
         >
-          Створити
+          ➕ Нова подорож
         </button>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-      </form>
+      </div>
+
+      {trips.length === 0 ? (
+        <p className="text-gray-600 text-center mt-20">Ще немає подорожей 😔</p>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {trips.map((trip) => (
+            <div
+              key={trip.id}
+              onClick={() => navigate(`/trips/${trip.id}`)}
+              className="cursor-pointer bg-white/90 backdrop-blur-lg rounded-3xl shadow-lg p-6 hover:shadow-2xl hover:scale-[1.02] transition-transform"
+            >
+              <h2 className="text-xl font-semibold text-blue-700 mb-2">{trip.title}</h2>
+              <p className="text-gray-600 mb-3 line-clamp-2">{trip.description || "Без опису"}</p>
+              <p className="text-sm text-gray-500">
+                📅 {trip.startDate} — {trip.endDate}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
-};
-
-export default NewTripPage;
+}
