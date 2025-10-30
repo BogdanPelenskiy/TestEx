@@ -1,65 +1,85 @@
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import prisma from "../lib/prisma.js";
 
-// Отримати всі подорожі користувача
 export const getTrips = async (req, res) => {
   try {
     const trips = await prisma.trip.findMany({
-      where: { ownerId: req.user.id },
-      orderBy: { startDate: "asc" },
+      where: {
+        OR: [
+          { ownerId: req.user.id },
+          { collaborators: { some: { id: req.user.id } } },
+        ],
+      },
+      include: {
+        owner: true,
+        collaborators: true,
+        places: true,
+      },
+      orderBy: { createdAt: "desc" },
     });
+
     res.json(trips);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error fetching trips" });
+    console.error("❌ getTrips error:", error);
+    res.status(500).json({ message: "Помилка отримання подорожей" });
   }
 };
 
-// Створити нову подорож
-export const createTrip = async (req, res) => {
-  const { title, description, startDate, endDate } = req.body;
+export const getTripById = async (req, res) => {
   try {
+    const trip = await prisma.trip.findUnique({
+      where: { id: req.params.id },
+      include: {
+        owner: true,
+        collaborators: true,
+        places: true,
+      },
+    });
+
+    if (!trip) return res.status(404).json({ message: "Подорож не знайдена" });
+    res.json(trip);
+  } catch (error) {
+    console.error("❌ getTripById error:", error);
+    res.status(500).json({ message: "Помилка отримання подорожі" });
+  }
+};
+
+export const createTrip = async (req, res) => {
+  try {
+    const { title, description, startDate, endDate } = req.body;
+
+    if (!title)
+      return res.status(400).json({ message: "Назва подорожі обов'язкова" });
+
     const trip = await prisma.trip.create({
       data: {
         title,
         description,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
+        startDate: startDate ? new Date(startDate) : null,
+        endDate: endDate ? new Date(endDate) : null,
         ownerId: req.user.id,
       },
     });
-    console.log(trip)
+
     res.status(201).json(trip);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: error });
+    console.error("❌ createTrip error:", error);
+    res.status(500).json({ message: "Помилка створення подорожі", error: error.message });
   }
 };
 
-// Оновити подорож
-export const updateTrip = async (req, res) => {
-  const { id } = req.params;
-  const { title, description, startDate, endDate } = req.body;
-  try {
-    const trip = await prisma.trip.update({
-      where: { id: parseInt(id) },
-      data: { title, description, startDate, endDate },
-    });
-    res.json(trip);
-  } catch (error) {
-    res.status(500).json({ message: "Error updating trip" });
-  }
-};
-
-// Видалити подорож
 export const deleteTrip = async (req, res) => {
-  const { id } = req.params;
   try {
-    await prisma.trip.delete({
-      where: { id: parseInt(id) },
-    });
-    res.json({ message: "Trip deleted successfully" });
+    const { id } = req.params;
+
+    const trip = await prisma.trip.findUnique({ where: { id } });
+    if (!trip) return res.status(404).json({ message: "Подорож не знайдена" });
+    if (trip.ownerId !== req.user.id)
+      return res.status(403).json({ message: "Немає прав для видалення" });
+
+    await prisma.trip.delete({ where: { id } });
+    res.json({ message: "Подорож видалена" });
   } catch (error) {
-    res.status(500).json({ message: "Error deleting trip" });
+    console.error("❌ deleteTrip error:", error);
+    res.status(500).json({ message: "Помилка видалення подорожі" });
   }
 };

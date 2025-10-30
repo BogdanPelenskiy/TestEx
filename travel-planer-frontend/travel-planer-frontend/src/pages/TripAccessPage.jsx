@@ -1,88 +1,35 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import api from "../services/api";
+import axios from "axios";
 
-export default function TripAccessPage() {
-  const { id } = useParams();
-  const [trip, setTrip] = useState(null);
-  const [invites, setInvites] = useState([]);
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+const TripAccessPage = () => {
+  const { token } = useParams();
+  const [status, setStatus] = useState("loading");
 
-  // === Завантаження даних подорожі та інвайтів ===
   useEffect(() => {
-    async function fetchData() {
+    const fetchInvite = async () => {
       try {
-        const [tripRes, inviteRes] = await Promise.all([
-          api.get(`/trips/${id}`),
-          api.get(`/trips/${id}/invites`),
-        ]);
-        setTrip(tripRes.data.trip);
-        setInvites(inviteRes.data);
+        const res = await axios.get(`http://localhost:5000/api/trips/invite/${token}`);
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        setStatus("success");
       } catch (err) {
-        console.error("Помилка завантаження доступів:", err);
-        setError("Не вдалося завантажити дані");
+        setStatus("error");
       }
-    }
-    fetchData();
-  }, [id]);
+    };
 
-  // === Надіслати інвайт ===
-  async function handleInvite(e) {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+    fetchInvite(); // ✅ async функція викликається правильно
+  }, [token]);
 
-    try {
-      const res = await api.post(`/trips/${id}/invites`, { email });
-      setInvites([...invites, res.data]);
-      setEmail("");
-    } catch (err) {
-      console.error("Помилка надсилання інвайту:", err);
-      setError(err.response?.data?.message || "Не вдалося надіслати інвайт");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  if (!trip) return <p>Завантаження...</p>;
+  if (status === "loading") return <p className="text-center mt-10">Завантаження...</p>;
+  if (status === "error") return <p className="text-center mt-10 text-red-500">Недійсне запрошення 😢</p>;
 
   return (
-    <div style={{ padding: "20px", maxWidth: "600px" }}>
-      <h2>🔐 Доступ до подорожі: {trip.title}</h2>
-      <p>Ви можете запросити користувачів до співпраці (роль: Collaborator).</p>
-
-      <form onSubmit={handleInvite} style={{ marginTop: "20px" }}>
-        <input
-          type="email"
-          placeholder="Email користувача"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? "Відправляю..." : "📨 Надіслати інвайт"}
-        </button>
-      </form>
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      <h3 style={{ marginTop: "30px" }}>📋 Список інвайтів</h3>
-      {invites.length === 0 ? (
-        <p>Поки що немає запрошень.</p>
-      ) : (
-        <ul>
-          {invites.map((invite) => (
-            <li key={invite.id}>
-              <strong>{invite.email}</strong> — {invite.status}
-              {invite.status === "pending" && (
-                <span> (очікує підтвердження)</span>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
+    <div className="flex flex-col items-center mt-20">
+      <h2 className="text-2xl font-bold text-green-600 mb-4">🎉 Вас успішно додано до подорожі!</h2>
+      <a href="/trips" className="text-blue-600 hover:underline">Перейти до подорожей</a>
     </div>
   );
-}
+};
+
+export default TripAccessPage;

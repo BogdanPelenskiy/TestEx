@@ -1,33 +1,85 @@
-// src/pages/Login.jsx
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useAuthStore } from "../store/authStore";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../services/api";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const { login } = useAuthStore();
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
     try {
-      await login(email, password);
-      navigate("/trips");
+      const res = await api.post("/auth/login", form);
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+        navigate("/trips");
+      }
     } catch (err) {
-      alert(err?.response?.data?.message || "Login failed");
+      setError(err.response?.data?.message || "❌ Невірні дані входу");
     }
   };
 
   return (
-    <div style={{display:"flex",justifyContent:"center",padding:40}}>
-      <form onSubmit={handleSubmit} style={{width:320}}>
-        <h2>Login</h2>
-        <input value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="Email" />
-        <input value={password} onChange={(e)=>setPassword(e.target.value)} placeholder="Password" type="password" />
-        <button type="submit">Login</button>
-        <p>Don't have account? <Link to="/register">Register</Link></p>
-      </form>
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
+      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
+        <h2 className="text-2xl font-bold text-center text-blue-600 mb-6">
+          Увійти
+        </h2>
+
+        {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              required
+              className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              placeholder="Введіть email"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Пароль</label>
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              required
+              className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              placeholder="Введіть пароль"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700 transition"
+          >
+            Увійти
+          </button>
+        </form>
+
+        <p className="text-sm text-gray-600 mt-4 text-center">
+          Немає акаунту?{" "}
+          <span
+            onClick={() => navigate("/register")}
+            className="text-blue-600 hover:underline cursor-pointer"
+          >
+            Зареєструватися
+          </span>
+        </p>
+      </div>
     </div>
   );
 }

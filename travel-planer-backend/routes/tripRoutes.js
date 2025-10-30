@@ -1,19 +1,14 @@
 import express from "express";
-import authenticate from "../middleware/authMiddleware.js";
-import {
-  getTrips,
-  createTrip,
-  updateTrip,
-  deleteTrip,
-} from "../controllers/tripController.js";
+import { createTrip, getTrips, deleteTrip } from "../controllers/tripController.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.use(authenticate);
+// захистимо всі маршрути після цього рядка
+router.use(protect);
 
-router.get("/", getTrips);
 router.post("/", createTrip);
-router.put("/:id", updateTrip);
+router.get("/", getTrips);
 router.delete("/:id", deleteTrip);
 
 export default router;

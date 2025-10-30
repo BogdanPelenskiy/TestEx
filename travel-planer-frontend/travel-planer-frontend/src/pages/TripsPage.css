@@ -1,0 +1,167 @@
+.page {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.btn {
+  display: inline-block;
+  padding: 10px 15px;
+  background: #2b7cff;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+}
+
+.trip-list {
+  margin-top: 20px;
+  display: grid;
+  gap: 16px;
+}
+
+.trip-card {
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 400px;
+  margin: 20px auto;
+}
+
+.auth-form input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.auth-form button {
+  background: #2b7cff;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.auth-form button:hover {
+  background: #1b5bd6;
+}
+
+.error {
+  color: red;
+  margin-top: 10px;
+}
+.trips-container {
+  padding: 40px;
+  text-align: center;
+}
+
+.trips-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 25px;
+  color: #1a1a1a;
+}
+
+.trip-form {
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 400px;
+  margin: 0 auto 40px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.input {
+  border: 1px solid #dcdcdc;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 16px;
+}
+
+.textarea {
+  resize: none;
+  height: 80px;
+}
+
+.btn-primary {
+  background-color: #2563eb;
+  color: white;
+  font-weight: 600;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: #1e40af;
+}
+
+.trips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.trip-card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  transition: 0.2s;
+}
+
+.trip-card:hover {
+  transform: translateY(-4px);
+}
+
+.invite-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.input.small {
+  font-size: 14px;
+  padding: 8px;
+}
+
+.btn-secondary {
+  background-color: #10b981;
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-secondary:hover {
+  background-color: #059669;
+}
+
+.message {
+  margin-top: 15px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.no-trips {
+  color: #555;
+  font-size: 16px;
+  margin-top: 20px;
+}
+
