@@ -73,7 +73,7 @@ export default function Register() {
         <p className="text-sm text-center text-gray-600 mt-6">
           Вже маєте акаунт?{" "}
           <span
-            onClick={() => navigate("/login")}
+            onClick={() => navigate("/")}
             className="text-blue-600 font-medium hover:underline cursor-pointer"
           >
             Увійти

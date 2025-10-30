@@ -1,183 +1,140 @@
-import { useState, useEffect } from "react";
-import { createTrip, getTrips, deleteTrip } from "../services/tripService";
-import { sendInvite } from "../services/inviteService";
+import { useEffect, useState } from "react";
+import { getTrips, deleteTrip, createTrip } from "../services/tripService";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
 
-export default function TripsPage() {
+const TripsPage = () => {
   const [trips, setTrips] = useState([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [inviteEmail, setInviteEmail] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [userName, setUserName] = useState("");
+  const [showForm, setShowForm] = useState(false);
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
-    const storedName = localStorage.getItem("userName");
-    if (storedName) setUserName(storedName);
-    fetchTrips();
+    loadTrips();
   }, []);
 
-  const fetchTrips = async () => {
+  const loadTrips = async () => {
     try {
       const data = await getTrips();
       setTrips(data);
-    } catch (error) {
-      console.error("❌ fetchTrips error:", error);
+    } catch (err) {
+      console.error("❌ Помилка при завантаженні подорожей:", err);
     }
   };
 
-  const handleCreateTrip = async () => {
-    if (!title.trim()) return alert("Введіть назву подорожі");
-    setLoading(true);
+  const handleDelete = async (id) => {
+    if (!window.confirm("Видалити цю подорож?")) return;
     try {
-      const newTrip = await createTrip({ title, description });
-      setTrips([...trips, newTrip]);
+      await deleteTrip(id);
+      loadTrips();
+    } catch (err) {
+      console.error("❌ Помилка при видаленні:", err);
+    }
+  };
+
+  const handleCreate = async () => {
+    if (!title.trim()) return alert("Введіть назву подорожі");
+    try {
+      await createTrip({ title, description });
       setTitle("");
       setDescription("");
-    } catch (error) {
-      console.error("❌ handleCreateTrip error:", error);
-    } finally {
-      setLoading(false);
+      setShowForm(false);
+      loadTrips();
+    } catch (err) {
+      console.error("❌ Помилка при створенні подорожі:", err);
     }
-  };
-
-  const handleInvite = async (tripId) => {
-    if (!inviteEmail[tripId]?.trim()) return alert("Введіть email друга!");
-    try {
-      await sendInvite({ tripId, email: inviteEmail[tripId] });
-      alert(`✅ Запрошення надіслано на ${inviteEmail[tripId]}`);
-      setInviteEmail((prev) => ({ ...prev, [tripId]: "" }));
-    } catch (error) {
-      console.error("❌ handleInvite error:", error);
-      alert("Помилка при надсиланні запрошення");
-    }
-  };
-
-  const handleDeleteTrip = async (tripId) => {
-    if (!window.confirm("Ви впевнені, що хочете видалити подорож?")) return;
-    try {
-      await deleteTrip(tripId);
-      setTrips(trips.filter((t) => t.id !== tripId));
-    } catch (error) {
-      console.error("❌ handleDeleteTrip error:", error);
-      alert("Не вдалося видалити подорож");
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userName");
-    navigate("/login");
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="min-h-screen bg-gray-100">
+      {/* Верхня панель */}
+      <Navbar user={user} />
 
-      {/* 🔹 Верхня панель */}
-      <header className="bg-blue-600 text-white flex justify-between items-center px-6 py-4 shadow-md">
-        <div className="flex items-center gap-3">
-          <img
-            src="https://cdn-icons-png.flaticon.com/512/3448/3448629.png"
-            alt="logo"
-            className="w-8 h-8"
-          />
-          <h1 className="text-lg font-semibold">Travel Planner</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="text-sm font-medium">👋 {userName || "Користувач"}</span>
+      <div className="max-w-4xl mx-auto pt-24 p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Мої подорожі</h1>
           <button
-            onClick={handleLogout}
-            className="bg-white text-blue-600 font-semibold px-3 py-1 rounded-lg hover:bg-gray-100 transition"
+            onClick={() => setShowForm(!showForm)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow transition"
           >
-            Вийти
+            + Нова подорож
           </button>
         </div>
-      </header>
 
-      {/* 🔹 Основна частина */}
-      <main className="flex flex-col items-center p-6 flex-1">
-        <h1 className="text-3xl font-bold mb-6 text-center">Мої подорожі</h1>
-
-        {/* Блок створення */}
-        <div className="bg-white p-6 rounded-2xl shadow-md w-full max-w-lg mb-8">
-          <input
-            type="text"
-            placeholder="Назва подорожі"
-            className="border rounded-lg w-full p-3 mb-3 focus:outline-none focus:ring focus:ring-blue-300"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <textarea
-            placeholder="Опис (необов’язково)"
-            className="border rounded-lg w-full p-3 mb-4 focus:outline-none focus:ring focus:ring-blue-300"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-          <button
-            onClick={handleCreateTrip}
-            disabled={loading}
-            className={`w-full py-3 text-white font-semibold rounded-lg ${
-              loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
-            } transition`}
-          >
-            {loading ? "Створюється..." : "Створити подорож"}
-          </button>
-        </div>
+        {/* Форма створення нової подорожі */}
+        {showForm && (
+          <div className="bg-white rounded-xl shadow-md p-5 mb-8">
+            <input
+              type="text"
+              placeholder="Назва подорожі"
+              className="border w-full p-3 mb-3 rounded-lg focus:ring focus:ring-blue-200"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+            <textarea
+              placeholder="Опис (необов’язково)"
+              className="border w-full p-3 mb-3 rounded-lg focus:ring focus:ring-blue-200"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={handleCreate}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+              >
+                Створити
+              </button>
+              <button
+                onClick={() => setShowForm(false)}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg"
+              >
+                Скасувати
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Список подорожей */}
-        <div className="w-full max-w-2xl">
-          {trips.length === 0 ? (
-            <p className="text-gray-600 text-center">
-              Поки немає жодної подорожі. Створи першу вище 👆
-            </p>
-          ) : (
-            <div className="grid gap-4">
-              {trips.map((trip) => (
-                <div
-                  key={trip.id}
-                  className="bg-white p-5 rounded-2xl shadow-md border border-gray-200"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h2 className="text-xl font-semibold text-gray-800">{trip.title}</h2>
-                      <p className="text-gray-600 mb-4">{trip.description || "Без опису"}</p>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteTrip(trip.id)}
-                      className="text-red-500 hover:text-red-700 font-semibold"
-                    >
-                      ✖
-                    </button>
-                  </div>
-
-                  {/* Запрошення */}
-                  <div className="flex gap-2 items-center">
-                    <input
-                      type="email"
-                      placeholder="Email друга"
-                      className="border rounded-lg p-2 flex-1 focus:outline-none focus:ring focus:ring-blue-200"
-                      value={inviteEmail[trip.id] || ""}
-                      onChange={(e) =>
-                        setInviteEmail((prev) => ({
-                          ...prev,
-                          [trip.id]: e.target.value,
-                        }))
-                      }
-                    />
-                    <button
-                      onClick={() => handleInvite(trip.id)}
-                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition"
-                    >
-                      Запросити
-                    </button>
-                  </div>
+        {trips.length === 0 ? (
+          <p className="text-gray-600 text-center">Поки немає жодної подорожі 👆</p>
+        ) : (
+          <div className="space-y-4">
+            {trips.map((trip) => (
+              <div
+                key={trip.id}
+                className="flex justify-between items-center bg-white p-5 rounded-xl shadow hover:shadow-lg transition"
+              >
+                <div>
+                  <h2 className="font-semibold text-lg text-gray-800">
+                    {trip.title}
+                  </h2>
+                  <p className="text-gray-600">
+                    {trip.description || "Без опису"}
+                  </p>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </main>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => navigate(`/trips/${trip.id}`)}
+                    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+                  >
+                    Деталі
+                  </button>
+                  <button
+                    onClick={() => handleDelete(trip.id)}
+                    className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+                  >
+                    Видалити
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
-}
+};
+
+export default TripsPage;

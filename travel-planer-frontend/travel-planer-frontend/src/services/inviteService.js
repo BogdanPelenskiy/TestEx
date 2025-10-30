@@ -1,7 +1,8 @@
 import api from "./api";
 
 // Мок-запит для надсилання запрошення (імітація email)
-export const sendInvite = async ({ tripId, email }) => {
+export const sendInvite = async ( tripId, email ) => {
+
   try {
     const res = await api.post("/invites", { tripId, email });
     return res.data;

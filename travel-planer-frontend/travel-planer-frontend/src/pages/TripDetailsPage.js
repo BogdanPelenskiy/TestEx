@@ -11,6 +11,9 @@ export default function TripDetailsPage() {
   const [trip, setTrip] = useState(null);
   const [inviteEmail, setInviteEmail] = useState("");
 
+    console.log(id)
+
+
   useEffect(() => {
     loadTrip();
   }, []);
@@ -22,6 +25,9 @@ export default function TripDetailsPage() {
   };
 
   const handleInvite = async () => {
+    console.log(id)
+    console.log(inviteEmail)
+
     if (!inviteEmail.trim()) return alert("Введіть email!");
     try {
       await sendInvite(id, inviteEmail);
