@@ -6,14 +6,14 @@ export const getTrips = async () => {
   return res.data;
 };
 
-// Створити подорож
-export const createTrip = async (tripData) => {
-  const res = await api.post("/trips", tripData);
+// Створити нову подорож
+export const createTrip = async ({ title, description }) => {
+  const res = await api.post("/trips", { title, description });
   return res.data;
 };
 
-// 🗑️ Видалити подорож
-export const deleteTrip = async (tripId) => {
-  const res = await api.delete(`/trips/${tripId}`);
+// Видалити подорож
+export const deleteTrip = async (id) => {
+  const res = await api.delete(`/trips/${id}`);
   return res.data;
 };

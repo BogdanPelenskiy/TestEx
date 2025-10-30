@@ -1,34 +1,40 @@
-// controllers/inviteController.js
 import prisma from "../lib/prisma.js";
-// import nodemailer from "nodemailer"; // ❌ тимчасово не потрібно
+import crypto from "crypto";
 
 export const sendInvite = async (req, res) => {
   try {
     const { tripId, email } = req.body;
 
     if (!tripId || !email) {
-      return res.status(400).json({ message: "tripId та email обов'язкові" });
+      return res.status(400).json({ message: "Необхідно вказати tripId та email" });
     }
 
-    // Знайти подорож
-    const trip = await prisma.trip.findUnique({ where: { id: Number(tripId) } });
-    if (!trip) return res.status(404).json({ message: "Подорож не знайдена" });
-
-    // Створити інвайт у БД
-    const invite = await prisma.invite.create({
-      data: { tripId: Number(tripId), email },
+    // ✅ Якщо tripId — це String (UUID)
+    const trip = await prisma.trip.findUnique({
+      where: { id: tripId },
     });
 
-    // 🧩 Мок відправки (замість реального nodemailer)
-    console.log(`📨 [MOCK] Запрошення надіслано на ${email} для подорожі "${trip.title}"`);
+    if (!trip) {
+      return res.status(404).json({ message: "Подорож не знайдена" });
+    }
 
-    // Імітація затримки відправки
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    const token = crypto.randomBytes(16).toString("hex");
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 днів
 
-    // Повернути успіх
-    res.json({ message: "Мок-запрошення успішно відправлено!", invite });
+    const invite = await prisma.invite.create({
+      data: {
+        tripId,
+        email,
+        token,
+        expiresAt,
+      },
+    });
+
+    console.log(`📨 Mock: запрошення на ${email} → подорож "${trip.title}"`);
+
+    res.json({ message: "✅ Запрошення створено (mock)", invite });
   } catch (error) {
     console.error("❌ sendInvite error:", error);
-    res.status(500).json({ message: "Помилка при мок-відправленні запрошення", error: error.message });
+    res.status(500).json({ message: "Помилка при створенні запрошення" });
   }
 };
