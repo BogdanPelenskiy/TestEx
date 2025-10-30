@@ -9,7 +9,6 @@ export const sendInvite = async (req, res) => {
       return res.status(400).json({ message: "Необхідно вказати tripId та email" });
     }
 
-    // ✅ Якщо tripId — це String (UUID)
     const trip = await prisma.trip.findUnique({
       where: { id: tripId },
     });
@@ -19,7 +18,7 @@ export const sendInvite = async (req, res) => {
     }
 
     const token = crypto.randomBytes(16).toString("hex");
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 днів
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     const invite = await prisma.invite.create({
       data: {

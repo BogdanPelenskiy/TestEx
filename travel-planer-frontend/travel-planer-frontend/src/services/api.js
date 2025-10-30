@@ -1,10 +1,10 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:5050/api", // або твоя адреса бекенду
+  baseURL: "http://localhost:5050/api",
 });
 
-// 🔐 додаємо токен авторизації до кожного запиту
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {

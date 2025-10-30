@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-// allowedRoles: array, наприклад ['Owner','Collaborator'] або ['Owner']
+
 export const requireTripRole = (allowedRoles = ['Owner','Collaborator']) => {
   return async (req, res, next) => {
     const tripId = req.params.id || req.params.tripId;
@@ -15,7 +15,7 @@ export const requireTripRole = (allowedRoles = ['Owner','Collaborator']) => {
       req.trip = trip;
       req.tripRole = 'Owner';
       if (allowedRoles.includes('Owner')) return next();
-      // Owner but not allowed -> continue to check if allowedRoles excludes Owner (rare)
+      
     }
 
     // Collaborator?

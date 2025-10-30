@@ -18,7 +18,7 @@ const TripAccessPage = () => {
       }
     };
 
-    fetchInvite(); // ✅ async функція викликається правильно
+    fetchInvite();
   }, [token]);
 
   if (status === "loading") return <p className="text-center mt-10">Завантаження...</p>;

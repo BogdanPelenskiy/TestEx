@@ -1,6 +1,6 @@
 import prisma from "../lib/prisma.js";
 
-// Отримати всі подорожі користувача
+
 export const getTrips = async (req, res) => {
   try {
     const trips = await prisma.trip.findMany({
@@ -25,7 +25,7 @@ export const getTrips = async (req, res) => {
   }
 };
 
-// Отримати одну подорож
+
 export const getTripById = async (req, res) => {
   try {
     const trip = await prisma.trip.findUnique({
@@ -45,7 +45,6 @@ export const getTripById = async (req, res) => {
   }
 };
 
-// ✅ Створити нову подорож із перевіркою дат
 export const createTrip = async (req, res) => {
   try {
     const { title, description, startDate, endDate } = req.body;

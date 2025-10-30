@@ -1,6 +1,6 @@
 import prisma from "../lib/prisma.js";
 
-// ✅ Отримати всі місця певної подорожі
+
 export const getPlacesByTrip = async (req, res) => {
   try {
     const { tripId } = req.params;
@@ -17,7 +17,7 @@ export const getPlacesByTrip = async (req, res) => {
   }
 };
 
-// ✅ Додати нове місце (місто) до подорожі
+
 export const createPlace = async (req, res) => {
   try {
     const { tripId } = req.params;
@@ -49,7 +49,7 @@ export const createPlace = async (req, res) => {
   }
 };
 
-// ✅ Видалити місце
+
 export const deletePlace = async (req, res) => {
   try {
     const { id } = req.params;
