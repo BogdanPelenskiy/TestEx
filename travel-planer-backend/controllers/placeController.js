@@ -1,64 +1,68 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "../lib/prisma.js";
 
-const prisma = new PrismaClient();
-
-export const getPlaces = async (req, res) => {
-  const { tripId } = req.params;
-
+// ✅ Отримати всі місця певної подорожі
+export const getPlacesByTrip = async (req, res) => {
   try {
+    const { tripId } = req.params;
+
     const places = await prisma.place.findMany({
       where: { tripId },
       orderBy: { dayNumber: "asc" },
     });
+
     res.json(places);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error fetching places" });
+    console.error("❌ getPlacesByTrip error:", error);
+    res.status(500).json({ message: "Помилка отримання місць" });
   }
 };
 
+// ✅ Додати нове місце (місто) до подорожі
 export const createPlace = async (req, res) => {
-  const { tripId } = req.params;
-  const { locationName, notes, dayNumber } = req.body;
-
-  if (dayNumber < 1) {
-    return res.status(400).json({ message: "dayNumber must be ≥ 1" });
-  }
-
   try {
+    const { tripId } = req.params;
+    const { locationName, notes, dayNumber } = req.body;
+
+    if (!locationName) {
+      return res.status(400).json({ message: "Назва місця обов’язкова" });
+    }
+
+    // Перевіримо, що подорож існує
+    const trip = await prisma.trip.findUnique({ where: { id: tripId } });
+    if (!trip) {
+      return res.status(404).json({ message: "Подорож не знайдена" });
+    }
+
     const place = await prisma.place.create({
-      data: { tripId, locationName, notes, dayNumber },
+      data: {
+        locationName,
+        notes,
+        dayNumber: dayNumber ? Number(dayNumber) : 1,
+        tripId,
+      },
     });
+
     res.status(201).json(place);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error creating place" });
+    console.error("❌ createPlace error:", error);
+    res.status(500).json({ message: "Помилка створення місця" });
   }
 };
 
-export const updatePlace = async (req, res) => {
-  const { id } = req.params;
-  const { locationName, notes, dayNumber } = req.body;
-
-  try {
-    const place = await prisma.place.update({
-      where: { id },
-      data: { locationName, notes, dayNumber },
-    });
-    res.json(place);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error updating place" });
-  }
-};
-
+// ✅ Видалити місце
 export const deletePlace = async (req, res) => {
-  const { id } = req.params;
   try {
+    const { id } = req.params;
+    const place = await prisma.place.findUnique({ where: { id } });
+
+    if (!place) {
+      return res.status(404).json({ message: "Місце не знайдене" });
+    }
+
     await prisma.place.delete({ where: { id } });
-    res.json({ message: "Place deleted" });
+    res.json({ message: "Місце видалено" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error deleting place" });
+    console.error("❌ deletePlace error:", error);
+    res.status(500).json({ message: "Помилка видалення місця" });
   }
 };

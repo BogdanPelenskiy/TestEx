@@ -1,5 +1,6 @@
 import prisma from "../lib/prisma.js";
 
+// Отримати всі подорожі користувача
 export const getTrips = async (req, res) => {
   try {
     const trips = await prisma.trip.findMany({
@@ -24,6 +25,7 @@ export const getTrips = async (req, res) => {
   }
 };
 
+// Отримати одну подорож
 export const getTripById = async (req, res) => {
   try {
     const trip = await prisma.trip.findUnique({
@@ -43,19 +45,36 @@ export const getTripById = async (req, res) => {
   }
 };
 
+// ✅ Створити нову подорож із перевіркою дат
 export const createTrip = async (req, res) => {
   try {
     const { title, description, startDate, endDate } = req.body;
 
-    if (!title)
-      return res.status(400).json({ message: "Назва подорожі обов'язкова" });
+    if (!title || !startDate || !endDate) {
+      return res.status(400).json({
+        message: "Потрібно вказати назву, дату початку та дату завершення подорожі",
+      });
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (isNaN(start) || isNaN(end)) {
+      return res.status(400).json({ message: "Некоректний формат дати" });
+    }
+
+    if (start > end) {
+      return res.status(400).json({
+        message: "Дата завершення не може бути раніше дати початку",
+      });
+    }
 
     const trip = await prisma.trip.create({
       data: {
         title,
         description,
-        startDate: startDate ? new Date(startDate) : null,
-        endDate: endDate ? new Date(endDate) : null,
+        startDate: start,
+        endDate: end,
         ownerId: req.user.id,
       },
     });
@@ -63,10 +82,14 @@ export const createTrip = async (req, res) => {
     res.status(201).json(trip);
   } catch (error) {
     console.error("❌ createTrip error:", error);
-    res.status(500).json({ message: "Помилка створення подорожі", error: error.message });
+    res.status(500).json({
+      message: "Помилка створення подорожі",
+      error: error.message,
+    });
   }
 };
 
+// Видалити подорож
 export const deleteTrip = async (req, res) => {
   try {
     const { id } = req.params;

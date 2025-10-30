@@ -6,6 +6,7 @@ import authRoutes from "./routes/authRoutes.js";
 import inviteRoutes from "./routes/inviteRoutes.js";
 import prisma from "./lib/prisma.js";
 
+
 dotenv.config();
 
 const app = express();

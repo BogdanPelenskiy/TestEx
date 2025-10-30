@@ -1,19 +1,37 @@
-import api from "./api";
+import axios from "axios";
 
-// Отримати всі подорожі
+const API_URL = "http://localhost:5050/api/trips";
+
+// ✅ Отримати всі подорожі
 export const getTrips = async () => {
-  const res = await api.get("/trips");
+  const token = localStorage.getItem("token");
+  const res = await axios.get(API_URL, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return res.data;
 };
 
-// Створити нову подорож
-export const createTrip = async ({ title, description }) => {
-  const res = await api.post("/trips", { title, description });
+// ✅ Створити подорож
+export const createTrip = async (tripData) => {
+  const token = localStorage.getItem("token");
+  const res = await axios.post(API_URL, tripData, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return res.data;
 };
 
-// Видалити подорож
+// ✅ Видалити подорож
 export const deleteTrip = async (id) => {
-  const res = await api.delete(`/trips/${id}`);
+  const token = localStorage.getItem("token");
+  const res = await axios.delete(`${API_URL}/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return res.data;
 };

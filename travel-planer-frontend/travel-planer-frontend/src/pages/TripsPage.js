@@ -7,6 +7,8 @@ const TripsPage = () => {
   const [trips, setTrips] = useState([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [showForm, setShowForm] = useState(false);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
@@ -35,21 +37,41 @@ const TripsPage = () => {
   };
 
   const handleCreate = async () => {
-    if (!title.trim()) return alert("Введіть назву подорожі");
+    if (!title.trim()) return alert("Введіть назву подорожі!");
+
+    // ✅ Перевірка дат
+    if (!startDate || !endDate) {
+      alert("Будь ласка, виберіть дати подорожі!");
+      return;
+    }
+    if (new Date(startDate) > new Date(endDate)) {
+      alert("Дата завершення не може бути раніше дати початку!");
+      return;
+    }
+
     try {
-      await createTrip({ title, description });
+      // ✅ Відправляємо дати у ISO форматі
+      await createTrip({
+        title,
+        description,
+        startDate: new Date(startDate).toISOString(),
+        endDate: new Date(endDate).toISOString(),
+      });
+
       setTitle("");
       setDescription("");
+      setStartDate("");
+      setEndDate("");
       setShowForm(false);
       loadTrips();
     } catch (err) {
       console.error("❌ Помилка при створенні подорожі:", err);
+      alert("Не вдалося створити подорож. Перевір консоль.");
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Верхня панель */}
       <Navbar user={user} />
 
       <div className="max-w-4xl mx-auto pt-24 p-6">
@@ -63,7 +85,7 @@ const TripsPage = () => {
           </button>
         </div>
 
-        {/* Форма створення нової подорожі */}
+        {/* ✅ Форма створення подорожі */}
         {showForm && (
           <div className="bg-white rounded-xl shadow-md p-5 mb-8">
             <input
@@ -79,6 +101,32 @@ const TripsPage = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
+
+            <div className="flex gap-3 mb-3">
+              <div className="flex-1">
+                <label className="block text-sm text-gray-600 mb-1">
+                  Дата початку
+                </label>
+                <input
+                  type="date"
+                  className="border w-full p-2 rounded-lg"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm text-gray-600 mb-1">
+                  Дата завершення
+                </label>
+                <input
+                  type="date"
+                  className="border w-full p-2 rounded-lg"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
+              </div>
+            </div>
+
             <div className="flex gap-3">
               <button
                 onClick={handleCreate}
@@ -96,9 +144,11 @@ const TripsPage = () => {
           </div>
         )}
 
-        {/* Список подорожей */}
+        {/* ✅ Список подорожей */}
         {trips.length === 0 ? (
-          <p className="text-gray-600 text-center">Поки немає жодної подорожі 👆</p>
+          <p className="text-gray-600 text-center">
+            Поки немає жодної подорожі 👆
+          </p>
         ) : (
           <div className="space-y-4">
             {trips.map((trip) => (
@@ -113,7 +163,15 @@ const TripsPage = () => {
                   <p className="text-gray-600">
                     {trip.description || "Без опису"}
                   </p>
+
+                  {trip.startDate && trip.endDate && (
+                    <p className="text-gray-500 text-sm mt-1">
+                      {new Date(trip.startDate).toLocaleDateString()} —{" "}
+                      {new Date(trip.endDate).toLocaleDateString()}
+                    </p>
+                  )}
                 </div>
+
                 <div className="flex gap-3">
                   <button
                     onClick={() => navigate(`/trips/${trip.id}`)}
